@@ -1,5 +1,6 @@
 package com.workshop.bouali.config;
 
+import com.workshop.bouali.dao.UserDao;
 import jakarta.servlet.Filter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -34,18 +35,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
-    private final static List<UserDetails> APPLICATION_USERS = Arrays.asList(
-            new User(
-                    "deanjw95@naver.com",
-                    "password",
-                    Collections.singleton(new SimpleGrantedAuthority("ROLE_ADMIN"))
-            ),
-            new User(
-                    "user@naver.com",
-                    "password",
-                    Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
-            )
-    );
+    private final UserDao userDao;
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -83,11 +73,7 @@ public class SecurityConfig {
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-                return APPLICATION_USERS
-                        .stream()
-                        .filter(userDetails -> userDetails.getUsername().equals(email))
-                        .findFirst()
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                return userDao.findUserByEmail(email);
             }
         };
     }
